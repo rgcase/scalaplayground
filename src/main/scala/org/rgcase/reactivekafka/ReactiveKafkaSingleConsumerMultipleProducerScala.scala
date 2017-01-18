@@ -45,7 +45,7 @@ class ReactiveKafkaSingleConsumerMultipleProducerScala extends App {
     .via(producerFlow3)
     .batch(max = 20, first ⇒ CommittableOffsetBatch.empty.updated(first.committableOffset)) { (batch, elem) ⇒
       batch.updated(elem.committableOffset)
-    }.map(_.commitScaladsl())
+    }.mapAsync(3)(_.commitScaladsl())
     .runWith(Sink.ignore)
 
 }

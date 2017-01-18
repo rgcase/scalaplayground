@@ -70,7 +70,7 @@ public class ReactiveKafkaSingleConsumerMultipleProducerJava {
                 20,
                 first -> ConsumerMessage.emptyCommittableOffsetBatch().updated(first.committableOffset()),
                 (batch, elem) -> batch.updated(elem.committableOffset()))
-            .map(CommittableOffsetBatch::commitJavadsl)
+            .mapAsync(3, CommittableOffsetBatch::commitJavadsl)
             .runWith(Sink.ignore(), mat);
 
     }
