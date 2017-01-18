@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % "2.4.16",
   "com.typesafe.akka" %% "akka-stream-testkit" % "2.4.16",
   "com.typesafe.akka" %% "akka-testkit" % "2.4.16" % "test",
+  "com.typesafe.akka" %% "akka-stream-kafka" % "0.13",
 
   //"com.typesafe.akka" %% "akka-http-core" % "2.4.11",
   //"com.typesafe.akka" %% "akka-http-experimental" % "2.4.11",
