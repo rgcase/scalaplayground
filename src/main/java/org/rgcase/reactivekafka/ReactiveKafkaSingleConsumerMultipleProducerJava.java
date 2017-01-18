@@ -37,7 +37,7 @@ public class ReactiveKafkaSingleConsumerMultipleProducerJava {
 
         ProducerSettings<byte[], String> producerSettings =
             ProducerSettings.create(system, new ByteArraySerializer(), new StringSerializer())
-                .withBootstrapServers("localhost:9093");
+                .withBootstrapServers("localhost:9092");
 
         Source<CommittableMessage<byte[], String>, Consumer.Control> kafkaSource =
             Consumer.committableSource(consumerSettings, Subscriptions.topics("yourtopic"));
@@ -63,8 +63,8 @@ public class ReactiveKafkaSingleConsumerMultipleProducerJava {
                 .map(msg -> msg.message().passThrough());
 
         kafkaSource
-            .via(producerFlow1).async()
-            .via(producerFlow2).async()
+            .via(producerFlow1)
+            .via(producerFlow2)
             .via(producerFlow3)
             .batch(
                 20,

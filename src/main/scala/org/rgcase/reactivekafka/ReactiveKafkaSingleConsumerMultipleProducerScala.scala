@@ -40,8 +40,8 @@ class ReactiveKafkaSingleConsumerMultipleProducerScala extends App {
     Flow.fromFunction(toProducerMessage("targettopic3")).via(Producer.flow(producerSettings)).map(_.message.passThrough)
 
   kafkaSource
-    .via(producerFlow1).async
-    .via(producerFlow2).async
+    .via(producerFlow1)
+    .via(producerFlow2)
     .via(producerFlow3)
     .batch(max = 20, first ⇒ CommittableOffsetBatch.empty.updated(first.committableOffset)) { (batch, elem) ⇒
       batch.updated(elem.committableOffset)
