@@ -33,7 +33,7 @@ class ReactiveKafkaFromHttpScala {
   val handler: HttpRequest => Future[HttpResponse] = {
 
     // Chunked payload
-    case HttpRequest(POST, Uri.Path("/chunks"), _, entity, _) =>
+    case HttpRequest(POST, Uri.Path("/chunkedpayload"), _, entity, _) =>
       entity
         .dataBytes
         .map(chunk => toProducerMessage("targetchunktopic")(chunk.toArray))
@@ -42,7 +42,7 @@ class ReactiveKafkaFromHttpScala {
         .map(_ => HttpResponse(StatusCodes.Created))
 
     // Full payload
-    case HttpRequest(POST, Uri.Path("/"), _, entity, _) =>
+    case HttpRequest(POST, Uri.Path("/fullpayload"), _, entity, _) =>
       val fut =
         entity
           .dataBytes
