@@ -40,6 +40,10 @@ class ReactiveKafkaFromHttpScala {
         .via(Producer.flow(producerSettings))
         .runWith(Sink.ignore)
         .map(_ => HttpResponse(StatusCodes.Created))
+        .recover { case e =>
+          entity.discardBytes()
+          HttpResponse(StatusCodes.InternalServerError)
+        }
 
     // Full payload
     case HttpRequest(POST, Uri.Path("/fullpayload"), _, entity, _) =>
@@ -54,6 +58,10 @@ class ReactiveKafkaFromHttpScala {
         .via(Producer.flow(producerSettings))
         .runWith(Sink.ignore)
         .map(_ => HttpResponse(StatusCodes.Created))
+        .recover { case e =>
+          entity.discardBytes()
+            HttpResponse(StatusCodes.InternalServerError)
+        }
 
   }
 
