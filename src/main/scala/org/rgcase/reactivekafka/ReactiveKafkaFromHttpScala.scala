@@ -10,7 +10,7 @@ import akka.kafka.ProducerMessage.Message
 import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Producer
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.{ Sink, Source }
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.ByteArraySerializer
 
@@ -20,6 +20,7 @@ class ReactiveKafkaFromHttpScala {
 
   implicit val system = ActorSystem("fromhttp")
   implicit val mat = ActorMaterializer()
+  import system.dispatcher
 
   val serverSource = Http().bind(interface = "localhost", port = 8080)
 
@@ -30,42 +31,44 @@ class ReactiveKafkaFromHttpScala {
     Message[Array[Byte], Array[Byte], NotUsed](new ProducerRecord(topic, chunk), NotUsed)
   }
 
-  val handler: HttpRequest => Future[HttpResponse] = {
+  val handler: HttpRequest ⇒ Future[HttpResponse] = {
 
     // Chunked payload
-    case HttpRequest(POST, Uri.Path("/chunkedpayload"), _, entity, _) =>
+    case HttpRequest(POST, Uri.Path("/chunkedpayload"), _, entity, _) ⇒
       entity
         .dataBytes
-        .map(chunk => toProducerMessage("targetchunktopic")(chunk.toArray))
+        .map(chunk ⇒ toProducerMessage("targetchunktopic")(chunk.toArray))
         .via(Producer.flow(producerSettings))
         .runWith(Sink.ignore)
-        .map(_ => HttpResponse(StatusCodes.Created))
-        .recover { case e =>
-          entity.discardBytes()
-          HttpResponse(StatusCodes.InternalServerError)
+        .map(_ ⇒ HttpResponse(StatusCodes.Created))
+        .recover {
+          case e ⇒
+            entity.discardBytes()
+            HttpResponse(StatusCodes.InternalServerError)
         }
 
     // Full payload
-    case HttpRequest(POST, Uri.Path("/fullpayload"), _, entity, _) =>
+    case HttpRequest(POST, Uri.Path("/fullpayload"), _, entity, _) ⇒
       val fut =
         entity
           .dataBytes
-          .runWith(Sink.fold(Array.empty[Byte]){ case (acc, bytes) => acc ++ bytes })
+          .runWith(Sink.fold(Array.empty[Byte]) { case (acc, bytes) ⇒ acc ++ bytes })
 
       Source
         .fromFuture(fut)
-        .map(bytes => toProducerMessage("targetfulltopic")(bytes))
+        .map(bytes ⇒ toProducerMessage("targetfulltopic")(bytes))
         .via(Producer.flow(producerSettings))
         .runWith(Sink.ignore)
-        .map(_ => HttpResponse(StatusCodes.Created))
-        .recover { case e =>
-          entity.discardBytes()
+        .map(_ ⇒ HttpResponse(StatusCodes.Created))
+        .recover {
+          case e ⇒
+            entity.discardBytes()
             HttpResponse(StatusCodes.InternalServerError)
         }
 
   }
 
-  serverSource.to(Sink.foreach { connection =>
+  serverSource.to(Sink.foreach { connection ⇒
     connection.handleWithAsyncHandler(handler)
   }).run()
 
